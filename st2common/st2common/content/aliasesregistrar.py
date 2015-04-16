@@ -43,7 +43,7 @@ class AliasesRegistrar(ResourceRegistrar):
     def register_aliases_from_dir(self, aliases_dir=None):
         if not aliases_dir:
             return 0
-        resources = self._get_resources_from_pack(resources_dir=aliases_dir)
+        resources = self.get_resources_from_pack(resources_dir=aliases_dir)
         return self._register_aliases(aliases=resources)
 
     def _register_aliases(self, aliases=None):

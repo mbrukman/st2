@@ -77,7 +77,7 @@ class ActionAliasExecutionController(rest.RestController):
                                                     params=params)
             liveaction = LiveActionDB(action=action_alias_db.action_ref, context={},
                                       parameters=params)
-            _, action_execution_db = action_service.schedule(liveaction)
+            _, action_execution_db = action_service.request(liveaction)
             return action_execution_db
         except ValueError as e:
             LOG.exception('Unable to execute action.')

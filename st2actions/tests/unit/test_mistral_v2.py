@@ -35,7 +35,7 @@ from st2tests.fixturesloader import FixturesLoader
 from st2tests import http
 from st2tests import DbTestCase
 import st2actions.bootstrap.runnersregistrar as runners_registrar
-from st2actions import worker
+from st2actions.container.base import RunnerContainer
 from st2actions.runners.mistral.v2 import MistralRunner
 from st2actions.runners.localrunner import LocalShellRunner
 from st2actions.handlers.mistral import MistralCallbackHandler
@@ -129,14 +129,13 @@ WF2_EXEC['workflow_name'] = WF2_NAME
 
 # Action executions' requirements
 ACTION_PARAMS = {'friend': 'Rocky'}
-CHAMPION = worker.Worker(None)
 
 NON_EMPTY_RESULT = 'non-empty'
 
 
 def process_create(payload):
     if isinstance(payload, LiveActionDB):
-        CHAMPION.execute_action(payload)
+        action_service.execute(payload, RunnerContainer())
 
 
 @mock.patch.object(LocalShellRunner, 'run', mock.

@@ -20,6 +20,7 @@ import uuid
 import mock
 import requests
 import six
+import traceback
 import yaml
 
 from mistralclient.api.base import APIException
@@ -39,6 +40,7 @@ from st2actions.container.base import RunnerContainer
 from st2actions.runners.mistral.v2 import MistralRunner
 from st2actions.runners.localrunner import LocalShellRunner
 from st2actions.handlers.mistral import MistralCallbackHandler
+from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.services import action as action_service
 from st2common.models.db.action import LiveActionDB
@@ -134,14 +136,29 @@ NON_EMPTY_RESULT = 'non-empty'
 
 
 def process_create(payload):
-    if isinstance(payload, LiveActionDB):
-        action_service.execute(payload, RunnerContainer())
+    try:
+        if isinstance(payload, LiveActionDB):
+            action_service.schedule(payload)
+    except Exception:
+        traceback.print_exc()
+        print(payload)
+
+
+def process_schedule(payload):
+    try:
+        if isinstance(payload, LiveActionDB):
+            action_service.execute(payload, RunnerContainer())
+    except Exception:
+        traceback.print_exc()
+        print(payload)
 
 
 @mock.patch.object(LocalShellRunner, 'run', mock.
                    MagicMock(return_value=(LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)))
 @mock.patch.object(CUDPublisher, 'publish_create', mock.MagicMock(side_effect=process_create))
 @mock.patch.object(CUDPublisher, 'publish_update', mock.MagicMock(return_value=None))
+@mock.patch.object(LiveActionPublisher, 'publish_schedule',
+                   mock.MagicMock(side_effect=process_schedule))
 class TestMistralRunner(DbTestCase):
 
     @classmethod
